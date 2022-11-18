@@ -1,11 +1,13 @@
-// module should without number 
+// module should without number
+`timescale 1ns/1ns
+
 module HalfAdder (carry,sum,a,b);
 
     input a,b;
     output sum,carry;
 
-    xor #6 (sum,a,b);
-    and #6 (carry,a,b);
+    xor #6 M1(sum,a,b);
+    and #6 M2(carry,a,b);
     
 endmodule
 
@@ -16,7 +18,7 @@ module FullAdder(sum,c_out,a,b,c_in);
 
     HalfAdder M1(w2,w1,a,b);
     HalfAdder M2(w3,sum,c_in,w1);
-           or #5(c_out,w2,w3);
+    or #5 M3(c_out,w2,w3);
 endmodule
 
 module sixteen_adder_subtractor(oflow,c_out, sum, a, b, m);
@@ -48,10 +50,41 @@ module sixteen_adder_subtractor(oflow,c_out, sum, a, b, m);
         FullAdder FA14(sum[13],c[14],a[13],x[13],c[12]);
         FullAdder FA15(sum[14],c[15],a[14],x[14],c[13]);
         FullAdder FA16(sum[15],c_out,a[15],x[15],c[14]);
-        xor #6 (oflow,c_out,c[15]);
+        xor #6 of(oflow,c_out,c[15]);
 
 endmodule    
 
-
+`timescale 1 ns/1 ns
 module adder_tb();
+reg clk;
+reg [15:0] a,b;
+reg m;
+wire [15:0] s; 
+wire c_out,oflow;
+integer i,j,handle;
+
+`define ADD 0
+`define SUB 1
+`define period 10
+
+sixteen_adder_subtractor as1(.oflow(oflow),.sum(s),.c_out(c_out),.a(a),.b(b),.m(m));
+
+initial clk = 0;
+always #(`period/2) clk= ~clk;
+initial
+begin
+    m= `ADD;
+    a=16'b0; b=16'b0;
+    handle=$fopen("delay_time.txt")
+    for (i =1 ;i<=100 ; i=i+1) 
+    begin@(posedge clk)
+        for(j=0;i<=99;i=i+1)
+        begin
+        #10;
+        a=i; b=j;
+        m=~m;
+        $fdisplay(handle,"%d  %b",$time,s)
+        end
+    end
+end
 endmodule
