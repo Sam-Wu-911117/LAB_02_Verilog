@@ -53,58 +53,31 @@ module sixteen_adder_subtractor(oflow,c_out, sum, a, b, m);
 
 endmodule    
 
-`timescale 1 ns/1 ns
+//`timescale 1 ns/1 ns
 module adder_tb();
-reg clk;
-reg signed [15:0] a,b,ans;
+//reg clk;
+reg  signed [15:0] a,b,ans;
 reg m;
 wire signed [15:0] s; 
 wire c_out,oflow;
-integer handle,i,j,k;
+integer handle,k,test_mum=10000;
 
 `define ADD 0
 `define SUB 1
-`define period 10
+//`define period 10
 initial m = `ADD;
 sixteen_adder_subtractor as1(.oflow(oflow),.sum(s),.c_out(c_out),.a(a),.b(b),.m(m));
 
-initial clk = 0;
-always #(`period/2) clk = ~clk;
-initial begin
+//initial clk = 0;
+//always #(`period/2) clk = ~clk;
+initial begin 
+    a=0;  b=0;
     handle=$fopen("delay_time.txt") 
-    for (i = 0 ; i<=99 ; i=i+1) begin 
-        for(j = 0; i<=99 ; i=i+1)begin
-        //@(posedge clk)    
-        oflow = 1'b0;  
-        a = i; b = j;
-        if(!m)
-        begin
-          m=~m;
-          ans = a+b;
-        end
-        else
-        begin
-          ans = a-b;
-        end
-        //output
-        for(k=1;k<=500;k=k+1)
-            begin
-            #1
-                if(ans==s)
-                begin
-                    oflow=oflow+1;
-                end
-                else
-                begin
-                    oflow=0;
-                end
-                
-                if(oflow==20)
-                begin
-                    $fdisplay(handle,"%d  %d",$time-19,s);
-                end
-            end    
-        end
-    end
-end
+    for(k=1;k<=test_mum;k=k+1)
+    begin
+    //@(posedge clk)
+    a = $random;  b = $random; 
+    $fdisplay(handle,"%d  %b",$time,s)
+    end    
+end        
 endmodule
