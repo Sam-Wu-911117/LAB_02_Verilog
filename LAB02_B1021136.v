@@ -1,13 +1,12 @@
 // module should without number
-`timescale 1ns/1ns
-
+`timescale 1 ns/1 ns
 module HalfAdder (carry,sum,a,b);
 
     input a,b;
     output sum,carry;
 
     xor #6 M1(sum,a,b);
-    and #6 M2(carry,a,b);
+    and #5 M2(carry,a,b);
     
 endmodule
 
@@ -57,33 +56,54 @@ endmodule
 `timescale 1 ns/1 ns
 module adder_tb();
 reg clk;
-reg [15:0] a,b;
+reg signed [15:0] a,b,ans;
 reg m;
-wire [15:0] s; 
+wire signed [15:0] s; 
 wire c_out,oflow;
-integer i,j,handle;
+integer handle,i,j,k;
 
 `define ADD 0
 `define SUB 1
 `define period 10
-
+initial m = `ADD;
 sixteen_adder_subtractor as1(.oflow(oflow),.sum(s),.c_out(c_out),.a(a),.b(b),.m(m));
 
 initial clk = 0;
-always #(`period/2) clk= ~clk;
-initial
-begin
-    m= `ADD;
-    a=16'b0; b=16'b0;
-    handle=$fopen("delay_time.txt")
-    for (i =1 ;i<=100 ; i=i+1) 
-    begin@(posedge clk)
-        for(j=0;i<=99;i=i+1)
+always #(`period/2) clk = ~clk;
+initial begin
+    handle=$fopen("delay_time.txt") 
+    for (i = 0 ; i<=99 ; i=i+1) begin 
+        for(j = 0; i<=99 ; i=i+1)begin
+        //@(posedge clk)    
+        oflow = 1'b0;  
+        a = i; b = j;
+        if(!m)
         begin
-        #10;
-        a=i; b=j;
-        m=~m;
-        $fdisplay(handle,"%d  %b",$time,s)
+          m=~m;
+          ans = a+b;
+        end
+        else
+        begin
+          ans = a-b;
+        end
+        //output
+        for(k=1;k<=500;k=k+1)
+            begin
+            #1
+                if(ans==s)
+                begin
+                    oflow=oflow+1;
+                end
+                else
+                begin
+                    oflow=0;
+                end
+                
+                if(oflow==20)
+                begin
+                    $fdisplay(handle,"%d  %d",$time-19,s);
+                end
+            end    
         end
     end
 end
