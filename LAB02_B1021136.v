@@ -1,5 +1,3 @@
-// module should without number
-`timescale 1 ns/1 ns
 module HalfAdder (carry,sum,a,b);
 
     input a,b;
@@ -20,7 +18,7 @@ module FullAdder(sum,c_out,a,b,c_in);
     or #5 M3(c_out,w2,w3);
 endmodule
 
-module sixteen_adder_subtractor(oflow,c_out, sum, a, b, m);
+module a_s_16_bits(oflow,c_out, sum, a, b, m);
 
         input [15:0] a,b ; 
         input m;
@@ -29,10 +27,9 @@ module sixteen_adder_subtractor(oflow,c_out, sum, a, b, m);
         output  [15:0] sum;
         wire [15:1] c;
         wire [15:0] x;
-        // xor using RTL
+
         assign #6 x[15:0] = b[15:0] ^ m;
         
-      
         FullAdder FA1(sum[0],c[1],a[0],x[0],m);
         FullAdder FA2(sum[1],c[2],a[1],x[1],c[1]);
         FullAdder FA3(sum[2],c[3],a[2],x[2],c[2]);
@@ -49,35 +46,65 @@ module sixteen_adder_subtractor(oflow,c_out, sum, a, b, m);
         FullAdder FA14(sum[13],c[14],a[13],x[13],c[12]);
         FullAdder FA15(sum[14],c[15],a[14],x[14],c[13]);
         FullAdder FA16(sum[15],c_out,a[15],x[15],c[14]);
-        xor #6 of(oflow,c_out,c[15]);
 
+        xor #6 of(oflow,c_out,c[15]);
 endmodule    
 
-//`timescale 1 ns/1 ns
 module adder_tb();
-//reg clk;
-reg  signed [15:0] a,b,ans;
+reg  [15:0] a,b,ans;
 reg m;
-wire signed [15:0] s; 
+
+wire  [15:0] s; 
 wire c_out,oflow;
-integer handle,k,test_mum=10000;
+
+integer check;
+integer handle,i,j,k;
 
 `define ADD 0
 `define SUB 1
-//`define period 10
-initial m = `ADD;
-sixteen_adder_subtractor as1(.oflow(oflow),.sum(s),.c_out(c_out),.a(a),.b(b),.m(m));
+`define period 10
+
+a_s_16_bits as1(.oflow(oflow),.c_out(c_out),.sum(s),.a(a),.b(b),.m(m));
 
 //initial clk = 0;
 //always #(`period/2) clk = ~clk;
 initial begin 
-    a=0;  b=0;
-    handle=$fopen("delay_time.txt") 
-    for(k=1;k<=test_mum;k=k+1)
-    begin
-    //@(posedge clk)
-    a = $random;  b = $random; 
-    $fdisplay(handle,"%d  %b",$time,s)
-    end    
+   handle=$fopen("delay_time.txt");
+      m= `ADD;
+      for(i=0;i<=99;i=i+1)
+      begin
+        for(j=0;j<=99;j=j+1)
+        begin
+          check=1'b0;
+          a=i; b=j;
+          if(!m)
+          begin
+            m=~m;
+            ans=a+b;
+          end
+          else
+          begin
+            ans=a-b;
+          end
+
+          for(k=1;k<=500;k=k+1)
+          begin 
+            #1
+            if(ans==s)
+            begin
+              check=check+1;
+            end
+            else
+            begin
+              check=0;
+            end
+              
+            if(check==20)
+            begin
+              $fdisplay(handle,"%d  %d",$time-19,s);
+            end
+          end
+        end  
+    end      
 end        
 endmodule
