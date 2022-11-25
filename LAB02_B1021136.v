@@ -104,7 +104,7 @@ module ST_bits();
               
             if(check==20)
             begin
-              $fdisplay(handle_1,"%d  %d",$time-19,s);
+              $fdisplay(handle_1,"%d  %b",$time-19,s);
             end
           end
         end
