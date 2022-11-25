@@ -73,7 +73,7 @@ module ST_bits();
     initial 
     begin
       handle_1=$fopen("delay_time.txt");
-      m=0;
+      m=0; //ADD
       for(i=0;i<=99;i=i+1)
       begin
         for(j=0;j<=99;j=j+1)
